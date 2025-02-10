@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+type HandlerFunc func(ctx context.Context, r *http.Request) Encoder
+
+type Logger func(ctx context.Context, msg string, args ...any)
+
 type App struct {
 	log     Logger
 	mux     *http.ServeMux
@@ -32,7 +36,7 @@ func (a *App) ServeHTTP(r *http.Request, w http.ResponseWriter) {
 func (a *App) EnableCORS(origins []string) {
 	a.origins = origins
 
-	handler := func(r *http.Request, w http.ResponseWriter) Encoder {
+	handler := func(ctx context.Context, r *http.Request) Encoder {
 		return nil
 	}
 	handler = wrapMiddleware([]MidFunc{a.corsHandler}, handler)
@@ -42,7 +46,7 @@ func (a *App) EnableCORS(origins []string) {
 
 func (a *App) corsHandler(webHandler HandlerFunc) HandlerFunc {
 
-	h := func(r *http.Request, ctx context.Context) Encoder {
+	h := func(ctx context.Context, r *http.Request) Encoder {
 
 		w := GetWriter(ctx)
 		reqOrigin := r.Header.Get("Origin")
@@ -58,14 +62,14 @@ func (a *App) corsHandler(webHandler HandlerFunc) HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 
-		return webHandler(r, ctx)
+		return webHandler(ctx, r)
 	}
 
 	return h
 }
 
 func (a *App) HandlerFuncNoMid(method string, group string, path string, handlerFunc HandlerFunc) {
-	h := func(r *http.Request, w http.ResponseWriter) {
+	h := func(w http.ResponseWriter, r *http.Request) {
 		ctx := setWriter(r.Context(), w)
 
 		resp := handlerFunc(ctx, r)

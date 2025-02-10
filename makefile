@@ -8,7 +8,7 @@ tidy:
 	go mod vendor
 
 chat-test:
-	go run tests/test_middleware.go
+	go run tests/test_web.go
 
 chat-curl:
 	curl -H "X-API-Key: secret" http://localhost:8080

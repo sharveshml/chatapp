@@ -1,9 +1,5 @@
 package web
 
-import "net/http"
-
-type HandlerFunc func(w http.ResponseWriter, r *http.Request)
-
 type MidFunc func(hander HandlerFunc) HandlerFunc
 
 func wrapMiddleware(middlewares []MidFunc, handler HandlerFunc) HandlerFunc {
