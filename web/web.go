@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type HandlerFunc func(ctx context.Context, r *http.Request) Encoder
@@ -87,4 +89,22 @@ func (a *App) HandlerFuncNoMid(method string, group string, path string, handler
 	finalPath = fmt.Sprintf("%s %s", method, finalPath)
 
 	a.mux.HandleFunc(finalPath, h)
+}
+
+func (a *App) HandleFunc(method string, path string, handler HandlerFunc, mw ...MidFunc) {
+	handler = wrapMiddleware(mw, handler)
+	handler = wrapMiddleware(a.mw, handler)
+
+	h := func(w http.ResponseWriter, r *http.Request) {
+		ctx := setWriter(r.Context(), w)
+		ctx = setTraceID(ctx, uuid.New())
+
+		resp := handler(ctx, r)
+
+		if err := Respond(ctx, w, resp); err != nil {
+			a.log(ctx, "WEB-RESPOND", "ERROR", err)
+		}
+	}
+
+	a.mux.HandleFunc(path, h)
 }
