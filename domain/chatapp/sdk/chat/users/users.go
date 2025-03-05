@@ -13,3 +13,5 @@ type Users struct {
 	user    map[uuid.UUID]chat.User
 	muUsers sync.RWMutex
 }
+
+func 
