@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// BuildInfo logs information stored inside the Go binary.
 func (log *Logger) BuildInfo(ctx context.Context) {
 	var values []any
 
@@ -14,7 +15,6 @@ func (log *Logger) BuildInfo(ctx context.Context) {
 
 	for _, s := range info.Settings {
 		key := s.Key
-
 		if quoteKey(key) {
 			key = strconv.Quote(key)
 		}
@@ -33,10 +33,12 @@ func (log *Logger) BuildInfo(ctx context.Context) {
 	log.Info(ctx, "build info", values...)
 }
 
+// quoteKey reports whether key is required to be quoted.
 func quoteKey(key string) bool {
-	return len(key) == 0 || strings.ContainsAny(key, "= \r\n\t\"`")
+	return len(key) == 0 || strings.ContainsAny(key, "= \t\r\n\"`")
 }
 
+// quoteValue reports whether value is required to be quoted.
 func quoteValue(value string) bool {
-	return len(value) == 0 || strings.ContainsAny(value, "= \t\r\n\"`")
+	return strings.ContainsAny(value, " \t\r\n\"`")
 }
